@@ -57,10 +57,13 @@ class NewsResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge() // Menampilkan sebagai badge dengan warna berbeda
-                    ->color(fn(string $state): string => match ($state) {
-                        'Positif' => 'success',
-                        'Netral' => 'warning',
-                        'Negatif' => 'danger',
+                    ->color(fn(string $state): string => match (strtolower(trim($state))) {
+                        // Tambahkan 'positive' di sini
+                        'positif', 'positive' => 'success',
+                        // Tambahkan 'neutral' di sini
+                        'netral', 'neutral' => 'warning',
+                        // Tambahkan 'negatif', 'negative' di sini
+                        'negatif', 'negative' => 'danger',
                         default => 'gray',
                     })
                     ->label('Sentimen'),
@@ -78,6 +81,26 @@ class NewsResource extends Resource
                         'Netral' => 'Netral',
                         'Negatif' => 'Negatif',
                     ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        // Ambil nilai yang dipilih dari filter
+                        $selectedOption = $data['value'] ?? null;
+
+                        // Jika tidak ada opsi yang dipilih, jangan lakukan filter
+                        if (!$selectedOption) {
+                            return $query;
+                        }
+
+                        // Petakan opsi yang dipilih ke semua kemungkinan nilai di database
+                        $sentimenValues = match ($selectedOption) {
+                            'Positif' => ['Positif', 'positif', 'positive', 'POSITIVE'],
+                            'Netral' => ['Netral', 'netral', 'neutral'],
+                            'Negatif' => ['Negatif', 'negatif', 'negative', 'NEGATIVE'],
+                            default => [], // Jika tidak ada yang cocok, kembalikan array kosong
+                        };
+
+                        // Lakukan filter menggunakan `whereIn` untuk mencocokkan salah satu nilai di array
+                        return $query->whereIn('sentimen', $sentimenValues);
+                    })
                     ->label('Filter Berdasarkan Sentimen'),
             ])
             ->actions([
@@ -110,10 +133,13 @@ class NewsResource extends Resource
                         // Menampilkan Sentimen
                         TextEntry::make('sentimen')
                             ->badge()
-                            ->color(fn(string $state): string => match ($state) {
-                                'Positif' => 'success',
-                                'Netral' => 'warning',
-                                'Negatif' => 'danger',
+                            ->color(fn(string $state): string => match (strtolower(trim($state))) {
+                                // Tambahkan 'positive' di sini
+                                'positif', 'positive' => 'success',
+                                // Tambahkan 'neutral' di sini
+                                'netral', 'neutral' => 'warning',
+                                // Tambahkan 'negatif', 'negative' di sini
+                                'negatif', 'negative' => 'danger',
                                 default => 'gray',
                             })
                             ->label('Sentimen'),

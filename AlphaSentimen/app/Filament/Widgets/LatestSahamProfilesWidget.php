@@ -34,10 +34,13 @@ class LatestSahamProfilesWidget extends BaseWidget
                     ->searchable()
                     ->sortable()
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'Positif' => 'success',
-                        'Netral' => 'warning',
-                        'Negatif' => 'danger',
+                    ->color(fn(string $state): string => match (strtolower(trim($state))) {
+                        // Tambahkan 'positive' di sini
+                        'positif', 'positive' => 'success',
+                        // Tambahkan 'neutral' di sini
+                        'netral', 'neutral' => 'warning',
+                        // Tambahkan 'negatif', 'negative' di sini
+                        'negatif', 'negative' => 'danger',
                         default => 'gray',
                     })
                     ->label('Sentimen'),

@@ -39,8 +39,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                // Tambahkan SpacerWidget terlebih dahulu untuk mendorong AccountWidget ke kanan
-                SpacerWidget::class,
 
                 // AccountWidget akan muncul setelah SpacerWidget, di kanan atas
                 Widgets\FilamentInfoWidget::class,

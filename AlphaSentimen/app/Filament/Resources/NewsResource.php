@@ -27,8 +27,8 @@ class NewsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-newspaper'; // Ikon untuk navigasi sidebar
     // Perbaikan: Mengubah label navigasi dari 'Beritas' menjadi 'Berita'
-    protected static ?string $navigationLabel = 'Berita'; // Label navigasi sidebar
-    protected static ?string $modelLabel = 'Berita'; // Label singular model
+    protected static ?string $navigationLabel = 'News'; // Label navigasi sidebar
+    protected static ?string $modelLabel = 'News'; // Label singular model
 
     // Metode ini mendefinisikan struktur form untuk membuat dan mengedit berita.
     // Dibiarkan kosong karena kita menghilangkan Create/Edit.
@@ -50,7 +50,7 @@ class NewsResource extends Resource
                     ->searchable() // Mengizinkan pencarian
                     ->sortable() // Mengizinkan pengurutan
                     ->wrap() // Membungkus teks jika terlalu panjang
-                    ->label('Judul Berita'),
+                    ->label('News Headline'),
 
                 // Kolom untuk Sentimen Berita
                 TextColumn::make('sentimen')

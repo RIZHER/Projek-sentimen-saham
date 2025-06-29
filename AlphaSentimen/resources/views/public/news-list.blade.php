@@ -15,7 +15,7 @@
             background-color: #f3f4f6;
             /* Warna abu-abu muda */
             color: #1f2937;
-            /* Warna teks gelap */
+            /* Default warna teks gelap untuk body */
         }
 
         .container {
@@ -110,10 +110,8 @@
             background-color: #fefefe;
             padding: 20px;
             border: 1px solid #888;
-            width: 90%;
-            /* Could be more or less, depending on screen size */
-            max-width: 800px;
-            /* Lebar maksimal modal */
+            width: min(calc(100vw - 40px), 800px);
+            /* Adaptif lebar modal */
             border-radius: 0.75rem;
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
             position: relative;
@@ -182,7 +180,7 @@
             margin-bottom: 0.5em;
         }
 
-        /* Gaya untuk Dark Mode */
+        /* --- Gaya untuk Dark Mode --- */
         html.dark body {
             background-color: #111827;
             /* Darker background */
@@ -227,44 +225,159 @@
             /* Darker border for table dividers */
         }
 
-        html.dark .text-gray-800 {
-            color: #f9fafb;
+        /* --- Perbaikan Warna Teks untuk Mode Terang (Default) dan Mode Gelap --- */
+        /* Pastikan heading dan teks utama selalu terlihat */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            /* Target semua heading */
+            color: #1f2937;
+            /* Default warna gelap untuk mode terang */
         }
 
-        html.dark .text-gray-900 {
+        html.dark h1,
+        html.dark h2,
+        html.dark h3,
+        html.dark h4,
+        html.dark h5,
+        html.dark h6 {
             color: #f9fafb;
+            /* Warna terang untuk mode gelap */
+        }
+
+        /* Teks abu-abu lainnya yang mungkin tidak terlihat */
+        .text-gray-600 {
+            /* Contoh: p.text-gray-600 */
+            color: #4b5563;
+            /* Default warna gelap */
         }
 
         html.dark .text-gray-600 {
             color: #d1d5db;
+            /* Warna terang di dark mode */
+        }
+
+        .text-gray-700 {
+            /* Contoh: label form, prose content */
+            color: #374151;
+            /* Default warna gelap */
+        }
+
+        html.dark .text-gray-700 {
+            color: #d1d5db;
+            /* Warna terang di dark mode */
+        }
+
+        .text-gray-800 {
+            /* Contoh: teks di card, judul berita tabel */
+            color: #1f2937;
+            /* Default warna paling gelap */
+        }
+
+        html.dark .text-gray-800 {
+            color: #f9fafb;
+            /* Warna paling terang di dark mode */
+        }
+
+        .text-gray-900 {
+            /* Default warna hitam untuk mode terang */
+            color: #000000;
+        }
+
+        html.dark .text-gray-900 {
+            color: #f9fafb;
+            /* Warna terang untuk dark mode */
+        }
+
+        .text-gray-500 {
+            /* Default warna abu-abu untuk mode terang */
+            color: #6b7280;
         }
 
         html.dark .text-gray-500 {
             color: #9ca3af;
+            /* Warna terang di dark mode */
         }
 
-        html.dark .text-blue-600 {
-            color: #60a5fa;
+        /* Styling untuk form input di Light Mode (lebih netral, border saja) */
+        .form-input,
+        .form-textarea,
+        .form-select {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-width: 1px;
+            border-color: #d1d5db;
+            /* Lebih netral: border-gray-300 */
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+            /* Latar belakang tetap putih */
+            color: #1f2937;
+            /* Warna teks hitam/gelap */
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
 
-        html.dark .close-button {
-            color: #d1d5db;
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            /* border-indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+            /* ring-indigo-200 / ring-indigo-500 */
         }
 
-        html.dark .badge-gray {
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: #6b7280;
+            /* placeholder color gray-500 */
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1f2937;
+            /* Default hitam/gelap untuk label */
+            margin-bottom: 0.5rem;
+        }
+
+        /* Styling untuk form input di Dark Mode */
+        html.dark .form-input,
+        html.dark .form-textarea,
+        html.dark .form-select {
             background-color: #374151;
-            color: #d1d5db;
+            /* bg-gray-700 */
+            border-color: #4b5563;
+            /* border-gray-600 */
+            color: #f9fafb;
+            /* text-white */
         }
 
-        /* Modal dark mode adjustments */
-        html.dark .modal-content {
-            background-color: #1f2937;
-            border-color: #374151;
-            color: #d1d5db;
+        html.dark .form-input::placeholder,
+        html.dark .form-textarea::placeholder {
+            color: #9ca3af;
+            /* placeholder color gray-400 */
         }
 
-        html.dark .prose {
+        html.dark .form-input:focus,
+        html.dark .form-textarea:focus,
+        html.dark .form-select:focus {
+            border-color: #60a5fa;
+            /* border-blue-400/500 */
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.5);
+            /* ring-blue-500 */
+        }
+
+        html.dark .form-label {
             color: #d1d5db;
+            /* text-gray-300 */
         }
     </style>
     <script>
@@ -316,10 +429,10 @@
         @if ($saham)
             <p class="text-lg text-gray-600 mb-8">Sentimen Global Saham: <span
                     class="px-2 py-1 rounded-full text-sm font-medium 
-                @if (strtolower(trim($saham->sentimen)) == 'positif' || strtolower(trim($saham->sentimen)) == 'positive') bg-green-100 text-green-800
-                @elseif(strtolower(trim($saham->sentimen)) == 'netral' || strtolower(trim($saham->sentimen)) == 'neutral') bg-yellow-100 text-yellow-800
-                @elseif(strtolower(trim($saham->sentimen)) == 'negatif' || strtolower(trim($saham->sentimen)) == 'negative') bg-red-100 text-red-800
-                @else bg-gray-100 text-gray-800 @endif">
+                @if (strtolower(trim($saham->sentimen)) == 'positif' || strtolower(trim($saham->sentimen)) == 'positive') badge-success
+                @elseif(strtolower(trim($saham->sentimen)) == 'netral' || strtolower(trim($saham->sentimen)) == 'neutral') badge-warning
+                @elseif(strtolower(trim($saham->sentimen)) == 'negatif' || strtolower(trim($saham->sentimen)) == 'negative') badge-danger
+                @else badge-gray @endif">
                     {{ $saham->sentimen }}
                 </span></p>
         @endif
@@ -332,6 +445,8 @@
                             Berita</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                             Sentimen</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Tanggal</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Aksi
                         </th>
                     </tr>
@@ -342,7 +457,8 @@
                             data-judul="{{ $berita->judul_berita }}" data-url="{{ $berita->url }}"
                             data-isi="{{ base64_encode(Str::markdown($berita->isi_berita)) }}" {{-- Encode Markdown to base64 --}}
                             data-sentimen="{{ $berita->sentimen }}"
-                            data-saham="{{ $berita->sahamProfile->nama_saham ?? 'N/A' }}">
+                            data-saham="{{ $berita->sahamProfile->nama_saham ?? 'N/A' }}"
+                            data-tanggal="{{ $berita->created_at->format('d F Y, H:i') }}">
                             <td class="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">
                                 {{ $berita->judul_berita }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -355,6 +471,8 @@
                                     {{ $berita->sentimen }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $berita->created_at->format('d M Y') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <button class="text-blue-600 hover:text-blue-900 font-semibold focus:outline-none">Lihat
                                     Detail</button>
@@ -373,6 +491,100 @@
         <!-- Paginasi -->
         <div class="mt-8">
             {{ $beritas->links('pagination::tailwind') }}
+        </div>
+
+        {{-- Bagian Kolom Komentar/Tweet --}}
+        <div class="card mt-8">
+            {{-- Perbaikan: Pastikan heading terlihat di light mode --}}
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">Buat Postingan Baru</h2>
+
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 dark:bg-red-900 dark:border-red-700 dark:text-red-300"
+                    role="alert">
+                    <strong class="font-bold">Oops!</strong>
+                    <span class="block sm:inline">Ada masalah dengan input Anda.</span>
+                    <ul class="mt-3 list-disc list-inside text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if (session('success_post'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 dark:bg-green-900 dark:border-green-700 dark:text-green-300"
+                    role="alert">
+                    <strong class="font-bold">Sukses!</strong>
+                    <span class="block sm:inline">{{ session('success_post') }}</span>
+                </div>
+            @endif
+
+            @if ($isAuthenticated)
+                <form action="{{ route('public.post.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="saham_id" value="{{ $saham->saham_id }}">
+
+                    <div class="mb-4">
+                        <label for="judul_postingan" class="form-label">Judul Postingan</label>
+                        <input type="text" name="judul_postingan" id="judul_postingan" class="form-input"
+                            value="{{ old('judul_postingan') }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="isi_postingan" class="form-label">Isi Postingan (Mendukung Markdown)</label>
+                        <textarea name="isi_postingan" id="isi_postingan" rows="5" class="form-textarea" required>{{ old('isi_postingan') }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="status" class="form-label">Visibilitas</label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="public" {{ old('status') == 'public' ? 'selected' : '' }}>Publik (Dapat
+                                Dilihat Semua Orang)</option>
+                            <option value="private" {{ old('status') == 'private' ? 'selected' : '' }}>Privat (Hanya
+                                Saya yang Melihat)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Kirim Postingan
+                    </button>
+                </form>
+            @else
+                <div class="text-center py-4 text-gray-600 dark:text-gray-400">
+                    Silakan <a href="{{ url('/admin/login') }}" class="text-blue-600 hover:underline">login</a> untuk
+                    membuat postingan.
+                </div>
+            @endif
+        </div>
+
+        <div class="card mt-8">
+            {{-- Perbaikan: Pastikan heading terlihat di light mode --}}
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">Postingan Komunitas</h2>
+            @forelse ($postingans as $post)
+                <div
+                    class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
+                    {{-- Perbaikan: Judul Postingan di daftar --}}
+                    <h3 class="text-xl font-semibold text-gray-900 mb-1">{{ $post->judul_postingan }}</h3>
+                    <p class="text-gray-700 text-sm mb-2">
+                        Diposting oleh: <span
+                            class="font-medium">{{ $post->user->name ?? 'Pengguna Tidak Dikenal' }}</span> pada
+                        {{ $post->created_at->format('d F Y, H:i') }}
+                        <span
+                            class="ml-2 px-2 py-1 rounded-full text-xs font-medium 
+                            @if ($post->status == 'public') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
+                            @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 @endif">
+                            {{ $post->status == 'public' ? 'Publik' : 'Privat' }}
+                        </span>
+                    </p>
+                    {{-- Perbaikan: Konten isi postingan --}}
+                    <div class="prose max-w-none text-gray-800 leading-relaxed">
+                        {!! Str::markdown($post->isi_postingan) !!}
+                    </div>
+                </div>
+            @empty
+                <p class="text-center text-gray-500">Belum ada postingan untuk saham ini.</p>
+            @endforelse
         </div>
     </div>
 

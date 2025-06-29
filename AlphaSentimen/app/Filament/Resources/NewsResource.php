@@ -19,6 +19,8 @@ use Filament\Infolists\Components\Grid; // Impor Grid untuk tata letak detail pa
 use Filament\Infolists\Infolist; // Impor Infolist
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Infolists\Components\Actions;
+use Filament\Infolists\Components\Actions\Action;
 
 
 class NewsResource extends Resource
@@ -122,13 +124,19 @@ class NewsResource extends Resource
                         // Menampilkan Judul Berita
                         TextEntry::make('judul_berita')
                             ->columnSpan('full') // Ambil lebar penuh
-                            ->label('Judul Berita'),
+                            ->label('Judul Berita')
+                            ->color('primary')
+                            ->badge(),
 
-                        // Menampilkan Link Asli (URL)
+                        /// ... di dalam infolist() schema
                         TextEntry::make('url')
-                            ->url(fn(Berita $record): string => $record->url) // Membuat URL bisa diklik
-                            ->openUrlInNewTab() // Membuka di tab baru
-                            ->label('Link Asli'),
+                            ->getStateUsing(fn(Berita $record): string => 'Lihat Berita Asli') // <-- Ini bagian kuncinya
+                            ->url(fn(Berita $record): string => $record->url)
+                            ->openUrlInNewTab()
+                            ->label('Link Asli')
+                            ->icon('heroicon-o-arrow-top-right-on-square')
+                            ->color('gray')
+                            ->badge(),
 
                         // Menampilkan Sentimen
                         TextEntry::make('sentimen')
@@ -146,7 +154,9 @@ class NewsResource extends Resource
 
                         // Menampilkan Nama Saham terkait
                         TextEntry::make('sahamProfile.nama_saham')
-                            ->label('Nama Saham'),
+                            ->label('Nama Saham')
+                            ->color('info')
+                            ->badge(),
 
                         // Menampilkan Isi Berita
                         TextEntry::make('isi_berita')

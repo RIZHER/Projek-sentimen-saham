@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->registration() // <--- PASTIKAN BARIS INI ADA DAN TIDAK DIKOMENTARI
             ->colors([
                 'primary' => Color::Amber,
             ])

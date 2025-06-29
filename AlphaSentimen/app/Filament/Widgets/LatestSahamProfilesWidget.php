@@ -28,7 +28,9 @@ class LatestSahamProfilesWidget extends BaseWidget
                 TextColumn::make('nama_saham')
                     ->searchable()
                     ->sortable()
-                    ->label('Nama Perusahaan'),
+                    ->label('Nama Perusahaan')
+                    // Menggunakan helper route() untuk membuat link ke halaman berita publik
+                    ->url(fn(SahamProfile $record): string => route('public.news.list', ['saham_id' => $record->saham_id])),
 
                 TextColumn::make('sentimen')
                     ->searchable()

@@ -226,7 +226,6 @@
         }
 
         /* --- Perbaikan Warna Teks untuk Mode Terang (Default) dan Mode Gelap --- */
-        /* Pastikan heading dan teks utama selalu terlihat */
         h1,
         h2,
         h3,
@@ -241,11 +240,9 @@
         html.dark h1,
         html.dark h2,
         html.dark h3,
-        html.dark h4,
-        html.dark h5,
-        html.dark h6 {
+        html.dark .text-gray-800 {
             color: #f9fafb;
-            /* Warna terang untuk mode gelap */
+            /* Warna terang untuk dark mode */
         }
 
         /* Teks abu-abu lainnya yang mungkin tidak terlihat */
@@ -269,17 +266,6 @@
         html.dark .text-gray-700 {
             color: #d1d5db;
             /* Warna terang di dark mode */
-        }
-
-        .text-gray-800 {
-            /* Contoh: teks di card, judul berita tabel */
-            color: #1f2937;
-            /* Default warna paling gelap */
-        }
-
-        html.dark .text-gray-800 {
-            color: #f9fafb;
-            /* Warna paling terang di dark mode */
         }
 
         .text-gray-900 {
@@ -379,6 +365,56 @@
             color: #d1d5db;
             /* text-gray-300 */
         }
+
+        /* --- Styling untuk Tombol Hapus Postingan --- */
+        .delete-button {
+            display: inline-flex;
+            align-items: center;
+            /* Perubahan: Ukuran normal */
+            padding: 0.5rem 1rem;
+            /* px-4 py-2 */
+            font-size: 0.875rem;
+            /* text-sm */
+            font-weight: 600;
+            /* Medium bold */
+            color: #ffffff;
+            /* Warna teks putih */
+            background-color: #dc2626;
+            /* bg-red-600 */
+            border: none;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .delete-button:hover {
+            background-color: #b91c1c;
+            /* hover:bg-red-700 */
+        }
+
+        .delete-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.5);
+            /* focus:ring-red-500 */
+        }
+
+        /* Dark Mode untuk Tombol Hapus */
+        html.dark .delete-button {
+            background-color: #ef4444;
+            /* bg-red-500 */
+            color: #ffffff;
+        }
+
+        html.dark .delete-button:hover {
+            background-color: #dc2626;
+            /* hover:bg-red-600 */
+        }
+
+        html.dark .delete-button:focus {
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5);
+        }
     </style>
     <script>
         // Script untuk mendeteksi dan menerapkan tema dari Filament
@@ -429,9 +465,9 @@
         @if ($saham)
             <p class="text-lg text-gray-600 mb-8">Sentimen Global Saham: <span
                     class="px-2 py-1 rounded-full text-sm font-medium 
-                @if (strtolower(trim($saham->sentimen)) == 'positif' || strtolower(trim($saham->sentimen)) == 'positive') badge-success
-                @elseif(strtolower(trim($saham->sentimen)) == 'netral' || strtolower(trim($saham->sentimen)) == 'neutral') badge-warning
-                @elseif(strtolower(trim($saham->sentimen)) == 'negatif' || strtolower(trim($saham->sentimen)) == 'negative') badge-danger
+                @if (strtolower(trim($saham->sentimen)) == 'positif' || strtolower(trim($saham->sentimen)) == 'positive') bg-green-100 text-green-800
+                @elseif(strtolower(trim($saham->sentimen)) == 'netral' || strtolower(trim($saham->sentimen)) == 'neutral') bg-yellow-100 text-yellow-800
+                @elseif(strtolower(trim($saham->sentimen)) == 'negatif' || strtolower(trim($saham->sentimen)) == 'negative') bg-red-100 text-red-800
                 @else badge-gray @endif">
                     {{ $saham->sentimen }}
                 </span></p>
@@ -445,8 +481,6 @@
                             Berita</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                             Sentimen</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Tanggal</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Aksi
                         </th>
                     </tr>
@@ -457,8 +491,7 @@
                             data-judul="{{ $berita->judul_berita }}" data-url="{{ $berita->url }}"
                             data-isi="{{ base64_encode(Str::markdown($berita->isi_berita)) }}" {{-- Encode Markdown to base64 --}}
                             data-sentimen="{{ $berita->sentimen }}"
-                            data-saham="{{ $berita->sahamProfile->nama_saham ?? 'N/A' }}"
-                            data-tanggal="{{ $berita->created_at->format('d F Y, H:i') }}">
+                            data-saham="{{ $berita->sahamProfile->nama_saham ?? 'N/A' }}">
                             <td class="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">
                                 {{ $berita->judul_berita }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -471,8 +504,6 @@
                                     {{ $berita->sentimen }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $berita->created_at->format('d M Y') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <button class="text-blue-600 hover:text-blue-900 font-semibold focus:outline-none">Lihat
                                     Detail</button>
@@ -577,10 +608,22 @@
                             {{ $post->status == 'public' ? 'Publik' : 'Privat' }}
                         </span>
                     </p>
-                    {{-- Perbaikan: Konten isi postingan --}}
+                    {{-- Konten isi postingan --}}
                     <div class="prose max-w-none text-gray-800 leading-relaxed">
                         {!! Str::markdown($post->isi_postingan) !!}
                     </div>
+                    {{-- Tombol Hapus dipindahkan ke sini, di bawah konten postingan, di kiri --}}
+                    @if ($isAuthenticated && $currentUserId === $post->user_id)
+                        <div class="mt-4 text-left"> {{-- Tombol hapus rata kiri --}}
+                            <form action="{{ route('public.post.delete', $post->postingan_id) }}" method="POST"
+                                class="inline-block"
+                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus postingan ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="delete-button">Hapus</button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
             @empty
                 <p class="text-center text-gray-500">Belum ada postingan untuk saham ini.</p>

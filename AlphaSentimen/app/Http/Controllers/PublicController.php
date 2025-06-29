@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Berita;
 use App\Models\SahamProfile;
 use App\Models\Postingan; // Import model Postingan
-use App\Models\User; // Import model User (untuk relasi user.name)
+use App\Models\User; // Import model User
 use Illuminate\Support\Str; // Import Str for markdown
 use Illuminate\Support\Facades\Auth; // Import Auth Facade
 
@@ -34,7 +34,6 @@ class PublicController extends Controller
                                ->get(); 
         
         // --- Logic untuk filter postingan public/private berdasarkan user yang login ---
-        // Kita filter di sini setelah mengambil semua, atau bisa di query langsung jika lebih efisien.
         $filteredPostings = $postingans->filter(function ($post) {
             return $post->status === 'public' || (Auth::check() && $post->user_id === Auth::id());
         });
@@ -48,6 +47,7 @@ class PublicController extends Controller
             'saham' => $saham,
             'postingans' => $filteredPostings, // Gunakan postingan yang sudah difilter
             'isAuthenticated' => Auth::check(), // Cek apakah user login
+            'currentUserId' => Auth::id(), // Teruskan ID user yang login untuk verifikasi di view
         ]);
     }
 
@@ -63,7 +63,7 @@ class PublicController extends Controller
             'saham_id' => 'required|exists:saham_profile,saham_id',
             'judul_postingan' => 'required|string|max:255',
             'isi_postingan' => 'required|string',
-            'status' => 'required|in:public,private', // Sekarang menerima status dari form
+            'status' => 'required|in:public,private',
         ]);
         
         Postingan::create([
@@ -71,9 +71,37 @@ class PublicController extends Controller
             'user_id' => Auth::id(), // Menggunakan ID user yang sedang login
             'judul_postingan' => $request->judul_postingan,
             'isi_postingan' => $request->isi_postingan,
-            'status' => $request->status, // Mengambil status dari form
+            'status' => $request->status,
         ]);
 
         return back()->with('success_post', 'Postingan berhasil ditambahkan!');
+    }
+
+    public function deletePost($postinganId)
+    {
+        // Pastikan pengguna sudah login
+        if (!Auth::check()) {
+            return back()->withErrors(['delete_error' => 'Anda harus login untuk menghapus postingan.']);
+        }
+
+        // Temukan postingan berdasarkan ID
+        $postingan = Postingan::find($postinganId);
+
+        // Jika postingan tidak ditemukan
+        if (!$postingan) {
+            return back()->withErrors(['delete_error' => 'Postingan tidak ditemukan.']);
+        }
+
+        // Verifikasi bahwa user yang mencoba menghapus adalah pemilik postingan
+        if ($postingan->user_id !== Auth::id()) {
+            return back()->withErrors(['delete_error' => 'Anda tidak memiliki izin untuk menghapus postingan ini.']);
+        }
+
+        try {
+            $postingan->delete();
+            return back()->with('success_post', 'Postingan berhasil dihapus!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['delete_error' => 'Gagal menghapus postingan: ' . $e->getMessage()]);
+        }
     }
 }

@@ -6,7 +6,8 @@ use App\Models\SahamProfile;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Filament\Support\Enums\Alignment;
+use Filament\Tables\Actions\ViewAction; // Import ViewAction
+use Filament\Tables\Actions\Action;
 
 class LatestSahamProfilesWidget extends BaseWidget
 {
@@ -28,9 +29,9 @@ class LatestSahamProfilesWidget extends BaseWidget
                 TextColumn::make('nama_saham')
                     ->searchable()
                     ->sortable()
-                    ->label('Nama Perusahaan')
-                    // Menggunakan helper route() untuk membuat link ke halaman berita publik
-                    ->url(fn(SahamProfile $record): string => route('public.news.list', ['saham_id' => $record->saham_id])),
+                    ->label('Nama Perusahaan'),
+                // Menggunakan helper route() untuk membuat link ke halaman berita publik
+                // ->url(fn(SahamProfile $record): string => route('public.news.list', ['saham_id' => $record->saham_id])),
 
                 TextColumn::make('sentimen')
                     ->searchable()
@@ -47,7 +48,14 @@ class LatestSahamProfilesWidget extends BaseWidget
                     })
                     ->label('Sentimen'),
             ])
-            ->paginated();
+            ->paginated()
+            ->actions([
+                // Tambahkan ViewAction
+                Action::make('view_news')
+                    ->label('Lihat Berita') // Label untuk tombol
+                    ->icon('heroicon-o-eye') // Ikon
+                    ->url(fn(SahamProfile $record): string => route('public.news.list', ['saham_id' => $record->saham_id])),
+            ]);;
     }
 
     // Mengontrol lebar kolom widget.

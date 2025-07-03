@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth; // Import Auth Facade
 
 class PublicController extends Controller
 {
+    //mengambil seluruh berita sesuai dengan kategori saham
     public function listNews(Request $request)
     {
         $sahamId = $request->input('saham_id');
@@ -51,6 +52,7 @@ class PublicController extends Controller
         ]);
     }
 
+    //unutk membuat sebuah postingan tersimpan di database
     public function storePost(Request $request)
     {
         // Pastikan pengguna sudah login untuk membuat postingan
@@ -77,6 +79,7 @@ class PublicController extends Controller
         return back()->with('success_post', 'Postingan berhasil ditambahkan!');
     }
 
+    //menghapus postingan yang sudah di publish
     public function deletePost($postinganId)
     {
         // Pastikan pengguna sudah login

@@ -613,7 +613,7 @@
                         {!! Str::markdown($post->isi_postingan) !!}
                     </div>
                     {{-- Tombol Hapus dipindahkan ke sini, di bawah konten postingan, di kiri --}}
-                    @if ($isAuthenticated && $currentUserId === $post->user_id)
+                    @if ($isAuthenticated && $currentUserId == $post->user_id)
                         <div class="mt-4 text-left"> {{-- Tombol hapus rata kiri --}}
                             <form action="{{ route('public.post.delete', $post->postingan_id) }}" method="POST"
                                 class="inline-block"

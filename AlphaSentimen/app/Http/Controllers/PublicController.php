@@ -16,7 +16,7 @@ class PublicController extends Controller
     public function listNews(Request $request)
     {
         $sahamId = $request->input('saham_id');
-        
+
         $saham = SahamProfile::find($sahamId);
 
         if (!$saham) {
@@ -24,16 +24,16 @@ class PublicController extends Controller
         }
 
         $beritas = Berita::where('saham_id', $sahamId)
-                         ->orderBy('created_at', 'desc')
-                         ->paginate(10); 
-        
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         $beritas->appends(request()->query());
 
         // Ambil postingan terkait saham ini
         $postingans = Postingan::where('saham_id', $sahamId)
-                               ->orderBy('created_at', 'desc')
-                               ->get(); 
-        
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         // --- Logic untuk filter postingan public/private berdasarkan user yang login ---
         $filteredPostings = $postingans->filter(function ($post) {
             return $post->status === 'public' || (Auth::check() && $post->user_id === Auth::id());
@@ -67,7 +67,7 @@ class PublicController extends Controller
             'isi_postingan' => 'required|string',
             'status' => 'required|in:public,private',
         ]);
-        
+
         Postingan::create([
             'saham_id' => $request->saham_id,
             'user_id' => Auth::id(), // Menggunakan ID user yang sedang login
@@ -96,7 +96,8 @@ class PublicController extends Controller
         }
 
         // Verifikasi bahwa user yang mencoba menghapus adalah pemilik postingan
-        if ($postingan->user_id !== Auth::id()) {
+        // Gunakan == (loose comparison) untuk menghindari masalah tipe data
+        if (Auth::id() != $postingan->user_id) {
             return back()->withErrors(['delete_error' => 'Anda tidak memiliki izin untuk menghapus postingan ini.']);
         }
 

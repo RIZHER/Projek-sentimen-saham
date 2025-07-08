@@ -8,33 +8,34 @@ import mysql.connector
 from datetime import datetime, timedelta
 import re
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize # Diperlukan jika Anda tokenisasi manual
-from nltk.stem import PorterStemmer # Jika Anda menggunakan stemming
-from sklearn.feature_extraction.text import TfidfVectorizer # Diperlukan untuk memuat vectorizer
-from sklearn.preprocessing import LabelEncoder # Diperlukan untuk memuat label encoder
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
+import sys
+import fcntl # Library untuk lock file di sistem Unix/Linux
 
-# Mengimpor fungsi scrape_detik_search_filtered dari modul multipageDetik.py
-# Asumsi struktur:
-# .
-# ├── app.py
-# ├── Scraping/
-# │   ├── __init__.py
-# │   └── multipageDetik.py
-# └── my_model.joblib
-# └── my_vectorizer.joblib
-# └── my_label_encoder.joblib
+# --- TENTUKAN JALUR DASAR SKRIP INI ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 from Scraping.multipageDetik import scrape_detik_search_filtered
 
-# --- NLTK Data Download (Hanya perlu sekali jalan jika belum ada) ---
-# import nltk
-# try:
-#     stopwords.words('indonesian')
-#     nltk.data.find('tokenizers/punkt') # Cek apakah punkt sudah ada
-# except LookupError:
-#     print("📦 Mengunduh data NLTK 'stopwords' dan 'punkt'...")
-#     nltk.download('stopwords')
-#     nltk.download('punkt')
-#     print("✅ Pengunduhan selesai.")
+# --- NLTK Data Download ---
+import nltk
+try:
+    os.environ['NLTK_DATA'] = os.path.join(BASE_DIR, 'nltk_data')
+    
+    stopwords.words('indonesian')
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    print("📦 Mengunduh data NLTK 'stopwords' dan 'punkt'...")
+    nltk.download('stopwords', download_dir=os.path.join(BASE_DIR, 'nltk_data'))
+    nltk.download('punkt', download_dir=os.path.join(BASE_DIR, 'nltk_data'))
+    print("✅ Pengunduhan selesai.")
+
+# Pastikan NLTK_DATA PATH diatur agar NLTK menemukan data yang diunduh
+os.environ['NLTK_DATA'] = os.path.join(BASE_DIR, 'nltk_data')
+
 
 # --- Konfigurasi Database MySQL ---
 DB_CONFIG = {
@@ -46,15 +47,18 @@ DB_CONFIG = {
 }
 
 # --- Konfigurasi File Scheduler Sederhana ---
-LAST_RUN_FILE = 'last_run.txt' # File untuk menyimpan timestamp terakhir kali skrip dijalankan
+LAST_RUN_FILE = os.path.join(BASE_DIR, 'last_run.txt')
 
-# --- Lokasi Model, Vectorizer, dan Label Encoder (SESUAIKAN INI) ---
-MODEL_PATH = 'my_model.joblib'
-VECTORIZER_PATH = 'my_vectorizer.joblib'
-LABEL_ENCODER_PATH = 'my_label_encoder.joblib'
+# --- Lokasi Model, Vectorizer, dan Label Encoder ---
+MODEL_PATH = os.path.join(BASE_DIR, 'my_model.joblib')
+VECTORIZER_PATH = os.path.join(BASE_DIR, 'my_vectorizer.joblib')
+LABEL_ENCODER_PATH = os.path.join(BASE_DIR, 'my_label_encoder.joblib')
+
+# --- Konfigurasi Lock File ---
+LOCK_FILE = os.path.join(BASE_DIR, 'app_scraper.lock')
+
 
 # --- Inisialisasi Stopwords dan Stemmer (HARUS SAMA PERSIS DENGAN SAAT PELATIHAN MODEL) ---
-# Enhanced Indonesian stopwords (disalin dari notebook)
 indonesian_stopwords = {
     'ada', 'adalah', 'adanya', 'adapun', 'agak', 'agaknya', 'agar', 'akan', 'akankah', 'akhir',
     'akhiri', 'akhirnya', 'aku', 'akulah', 'amat', 'amatlah', 'anda', 'andalah', 'antar',
@@ -191,203 +195,279 @@ def preprocess_text(text):
     return ' '.join(filtered_words).strip()
 
 
-# --- Fungsi Web Scraping yang Disediakan Pengguna (multipageDetik.py) ---
-# Fungsi ini diimpor dari file 'Scraping/multipageDetik.py'
-# Pastikan file tersebut ada di lokasi yang benar dan berisi fungsi scrape_detik_search_filtered
-# Pastikan juga ada file __init__.py kosong di dalam folder 'Scraping'
-# def scrape_detik_search_filtered(query, max_articles=50):
-#     ... (kode scraping Anda sebelumnya) ...
+# --- Fungsi Baru: Update Sentimen Keseluruhan Saham di saham_profile ---
+def update_overall_stock_sentiment(db_connection):
+    """
+    Mengambil semua saham, menghitung sentimen mayoritas dari berita terkait,
+    dan memperbarui kolom 'sentimen' di tabel 'saham_profile'.
+    """
+    print(f"[{datetime.now()}] Memulai pembaruan sentimen keseluruhan saham di 'saham_profile'...")
+    cursor = None
+    try:
+        cursor = db_connection.cursor(dictionary=True)
+
+        # Ambil semua saham_id dari tabel saham_profile
+        cursor.execute("SELECT saham_id, nama_saham FROM saham_profile")
+        all_stocks = cursor.fetchall()
+
+        if not all_stocks:
+            print(f"[{datetime.now()}] Tidak ada saham ditemukan di tabel 'saham_profile' untuk diperbarui sentimennya.")
+            return
+
+        for stock in all_stocks:
+            saham_id = stock['saham_id']
+            nama_saham = stock['nama_saham']
+
+            print(f"[{datetime.now()}] Menganalisis sentimen untuk '{nama_saham}' (ID: {saham_id})...")
+
+            # Ambil semua sentimen berita yang terkait dengan saham_id ini
+            cursor.execute("""
+                SELECT sentimen, COUNT(*) as count
+                FROM berita
+                WHERE saham_id = %s
+                GROUP BY sentimen
+                ORDER BY count DESC
+                LIMIT 1
+            """, (saham_id,))
+            
+            majority_sentiment_row = cursor.fetchone()
+
+            if majority_sentiment_row:
+                majority_sentiment = majority_sentiment_row['sentimen']
+                print(f"[{datetime.now()}] Sentimen mayoritas untuk '{nama_saham}' adalah: {majority_sentiment}")
+                
+                # Perbarui kolom 'sentimen' di tabel 'saham_profile'
+                update_saham_profile_query = """
+                    UPDATE saham_profile
+                    SET sentimen = %s
+                    WHERE saham_id = %s;
+                """
+                cursor.execute(update_saham_profile_query, (majority_sentiment, saham_id))
+                db_connection.commit()
+                print(f"[{datetime.now()}] Kolom sentimen di 'saham_profile' untuk '{nama_saham}' berhasil diperbarui menjadi '{majority_sentiment}'.")
+            else:
+                print(f"[{datetime.now()}] Tidak ada data sentimen berita untuk '{nama_saham}' (ID: {saham_id}). Sentimen saham tidak diperbarui.")
+
+    except mysql.connector.Error as err:
+        print(f"[{datetime.now()}] Kesalahan Database saat memperbarui sentimen saham: {err}")
+    except Exception as e:
+        print(f"[{datetime.now()}] Terjadi kesalahan tak terduga saat memperbarui sentimen saham: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+    print(f"[{datetime.now()}] Pembaruan sentimen keseluruhan saham selesai.")
+
 
 # --- Fungsi Utama Aplikasi ---
 def main():
     print(f"[{datetime.now()}] Memulai aplikasi Sentimen Analisis Berita...")
 
-    # --- 1. Pengecekan Waktu Terakhir Dijalankan ---
-    current_time = datetime.now()
-    last_run_time = None
-    if os.path.exists(LAST_RUN_FILE):
-        with open(LAST_RUN_FILE, 'r') as f:
-            try:
-                last_run_time_str = f.read().strip()
-                if last_run_time_str:
-                    last_run_time = datetime.fromisoformat(last_run_time_str)
-            except ValueError:
-                print("Peringatan: Format waktu terakhir dijalankan tidak valid. Mengabaikan.")
-
-    # Logika untuk menunggu jika belum 1 jam
-    if last_run_time:
-        time_diff = current_time - last_run_time
-        # Waktu minimum yang harus dilalui sebelum menjalankan scraping berikutnya (1 jam)
-        minimum_interval = timedelta(hours=1)
-
-        if time_diff < minimum_interval:
-            time_to_wait = minimum_interval - time_diff
-            print(f"[{current_time}] Skrip terakhir dijalankan {time_diff} yang lalu.")
-            print(f"⏳ Menunggu {time_to_wait} sebelum melanjutkan scraping...")
-            time.sleep(time_to_wait.total_seconds())
-            # Setelah menunggu, perbarui current_time agar log selanjutnya akurat
-            current_time = datetime.now()
-            print(f"[{current_time}] Lanjutkan setelah menunggu.")
-        else:
-            print(f"[{current_time}] Waktu sudah lebih dari 1 jam sejak terakhir dijalankan. Melanjutkan.")
-    else:
-        print(f"[{current_time}] File catatan waktu terakhir dijalankan tidak ditemukan atau kosong. Melanjutkan.")
-
-
-    # --- 2. Muat Model Sentimen, Vectorizer, dan Label Encoder ---
-    sentiment_model = None
-    vectorizer = None
-    label_encoder = None
+    # --- 0. Implementasi Lock File ---
+    lock_file_fd = None
     try:
-        sentiment_model = joblib.load(MODEL_PATH)
-        print(f"Model sentimen berhasil dimuat dari {MODEL_PATH}.")
-        
-        vectorizer = joblib.load(VECTORIZER_PATH)
-        print(f"Vectorizer berhasil dimuat dari {VECTORIZER_PATH}.")
-
-        label_encoder = joblib.load(LABEL_ENCODER_PATH)
-        print(f"Label Encoder berhasil dimuat dari {LABEL_ENCODER_PATH}.")
-
-    except FileNotFoundError as e:
-        print(f"Error: Gagal memuat model, vectorizer, atau label encoder. Pastikan file ada di lokasi yang benar. {e}")
-        return # Hentikan jika file tidak bisa dimuat
+        lock_file_fd = open(LOCK_FILE, 'w')
+        fcntl.flock(lock_file_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        print(f"[{datetime.now()}] Acquired lock: {LOCK_FILE}")
+    except IOError:
+        print(f"[{datetime.now()}] ERROR: Lock file '{LOCK_FILE}' sudah ada atau tidak bisa didapat. Skrip lain mungkin sedang berjalan. Keluar.")
+        if lock_file_fd:
+            lock_file_fd.close()
+        sys.exit(0)
     except Exception as e:
-        print(f"Error tak terduga saat memuat model/vectorizer/encoder: {e}")
-        return
+        print(f"[{datetime.now()}] ERROR: Kesalahan tak terduga saat mencoba lock file: {e}")
+        sys.exit(1)
 
-    db_connection = None
-    try:
-        # --- 3. Koneksi ke Database MySQL ---
-        db_connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = db_connection.cursor(dictionary=True) # dictionary=True agar hasil query berupa dict
+    try: # Seluruh logika aplikasi utama dipindahkan ke dalam blok try ini
 
-        print("Berhasil terhubung ke database MySQL.")
-
-        # --- 4. Ambil Kata Kunci (nama_saham) dari tabel saham_profile ---
-        cursor.execute("SELECT saham_id, nama_saham FROM saham_profile")
-        stock_keywords = cursor.fetchall()
-
-        if not stock_keywords:
-            print("Tidak ada kata kunci saham ditemukan di tabel 'saham_profile'.")
-            return
-
-        print(f"Ditemukan {len(stock_keywords)} kata kunci saham.")
-
-        # --- 5. Dapatkan semua URL berita yang sudah ada di database ---
-        cursor.execute("SELECT url FROM berita")
-        existing_urls = {row['url'] for row in cursor.fetchall()}
-        print(f"Ditemukan {len(existing_urls)} URL berita yang sudah ada di database.")
-
-        total_new_articles_processed = 0
-
-        # --- 6. Iterasi Setiap Kata Kunci untuk Scraping dan Analisis ---
-        for stock in stock_keywords:
-            saham_id = stock['saham_id']
-            nama_saham = stock['nama_saham']
-            
-            # Buat query untuk scraping, hanya menggunakan nama_saham
-            search_query = f"{nama_saham}" 
-            print(f"\n--- Memproses kata kunci: '{search_query}' (Saham ID: {saham_id}) ---")
-
-            # Lakukan scraping menggunakan fungsi yang diimpor
-            raw_scraped_data = scrape_detik_search_filtered(search_query, max_articles=20) # Batasi per saham untuk efisiensi
-            
-            if not raw_scraped_data:
-                print(f"Tidak ada berita baru yang di-scrape untuk '{search_query}'.")
-                continue
-
-            print(f"Ditemukan {len(raw_scraped_data)} artikel potensial untuk '{search_query}'.")
-
-            new_articles_for_stock = []
-            for article in raw_scraped_data:
-                # Pengecekan duplikat dengan URL yang sudah ada di database
-                if article['url'] not in existing_urls:
-                    new_articles_for_stock.append(article)
-                    existing_urls.add(article['url']) # Tambahkan ke set agar tidak diproses lagi dalam loop yang sama
-
-            if not new_articles_for_stock:
-                print(f"Tidak ada artikel baru yang unik setelah pengecekan duplikat untuk '{search_query}'.")
-                continue
-
-            print(f"Ditemukan {len(new_articles_for_stock)} artikel BARU dan UNIK untuk '{search_query}'.")
-
-            # Konversi ke DataFrame untuk kemudahan pemrosesan
-            new_articles_df = pd.DataFrame(new_articles_for_stock)
-
-            # --- 7. Pra-pemrosesan dan Sentimen Analisis dengan ML Model ---
-            print("Melakukan pra-pemrosesan dan analisis sentimen dengan model ML...")
-            
-            # Gabungkan judul dan isi berita seperti di notebook jika Anda melatihnya dengan text_gabungan
-            # Jika Anda melatih model hanya dengan 'isi_berita', sesuaikan di sini
-            new_articles_df['text_gabungan'] = new_articles_df['judul'].apply(preprocess_text) + ' ' + \
-                                               new_articles_df['isi_berita'].apply(preprocess_text)
-
-            # Pastikan teks yang bersih tidak kosong sebelum vektorisasi dan prediksi
-            new_articles_df = new_articles_df[new_articles_df['text_gabungan'].str.strip() != '']
-            
-            if new_articles_df.empty:
-                print(f"Tidak ada konten yang valid setelah pra-pemrosesan untuk '{search_query}'.")
-                continue
-
-            # Vektorisasi teks (gunakan .transform(), BUKAN .fit_transform())
-            X_new = vectorizer.transform(new_articles_df['text_gabungan'])
-            
-            # Prediksi sentimen (akan mengembalikan label angka)
-            predictions_encoded = sentiment_model.predict(X_new)
-            
-            # Konversi label angka kembali ke label string menggunakan inverse_transform
-            new_articles_df['sentimen'] = label_encoder.inverse_transform(predictions_encoded)
-
-            print(f"Analisis sentimen selesai untuk {len(new_articles_df)} artikel.")
-
-            # --- 8. Simpan Berita Baru ke Database MySQL ---
-            insert_query = """
-            INSERT INTO berita (saham_id, url, judul_berita, isi_berita, sentimen)
-            VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE 
-                judul_berita = VALUES(judul_berita), 
-                isi_berita = VALUES(isi_berita), 
-                sentimen = VALUES(sentimen);
-            """
-            
-            articles_inserted_count = 0
-            for index, row in new_articles_df.iterrows():
+        # --- 1. Pengecekan Waktu Terakhir Dijalankan ---
+        current_time = datetime.now()
+        last_run_time = None
+        if os.path.exists(LAST_RUN_FILE):
+            with open(LAST_RUN_FILE, 'r') as f:
                 try:
-                    cursor.execute(insert_query, (
-                        saham_id,
-                        row['url'],
-                        row['judul'],
-                        row['isi_berita'],
-                        row['sentimen'] # Menggunakan sentimen dari model ML
-                    ))
-                    articles_inserted_count += 1
-                    total_new_articles_processed += 1
-                except mysql.connector.Error as err:
-                    print(f"Error saat menyimpan berita ke DB: {err} untuk URL: {row['url']}")
+                    last_run_time_str = f.read().strip()
+                    if last_run_time_str:
+                        last_run_time = datetime.fromisoformat(last_run_time_str)
+                except ValueError:
+                    print("Peringatan: Format waktu terakhir dijalankan tidak valid. Mengabaikan.")
+
+        # Logika untuk menunggu jika belum 1 jam
+        if last_run_time:
+            time_diff = current_time - last_run_time
+            minimum_interval = timedelta(hours=1)
+
+            if time_diff < minimum_interval:
+                time_to_wait = minimum_interval - time_diff
+                print(f"[{current_time}] Skrip terakhir dijalankan {time_diff} yang lalu.")
+                print(f"⏳ Menunggu {time_to_wait} sebelum melanjutkan scraping...")
+                time.sleep(time_to_wait.total_seconds())
+                current_time = datetime.now()
+                print(f"[{current_time}] Lanjutkan setelah menunggu.")
+            else:
+                print(f"[{current_time}] Waktu sudah lebih dari 1 jam sejak terakhir dijalankan. Melanjutkan.")
+        else:
+            print(f"[{current_time}] File catatan waktu terakhir dijalankan tidak ditemukan atau kosong. Melanjutkan.")
+
+
+        # --- 2. Muat Model Sentimen, Vectorizer, dan Label Encoder ---
+        sentiment_model = None
+        vectorizer = None
+        label_encoder = None
+        try:
+            sentiment_model = joblib.load(MODEL_PATH)
+            print(f"Model sentimen berhasil dimuat dari {MODEL_PATH}.")
+            
+            vectorizer = joblib.load(VECTORIZER_PATH)
+            print(f"Vectorizer berhasil dimuat dari {VECTORIZER_PATH}.")
+
+            label_encoder = joblib.load(LABEL_ENCODER_PATH)
+            print(f"Label Encoder berhasil dimuat dari {LABEL_ENCODER_PATH}.")
+
+        except FileNotFoundError as e:
+            print(f"Error: Gagal memuat model, vectorizer, atau label encoder. Pastikan file ada di lokasi yang benar. {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error tak terduga saat memuat model/vectorizer/encoder: {e}")
+            sys.exit(1)
+
+        db_connection = None
+        try:
+            # --- 3. Koneksi ke Database MySQL ---
+            db_connection = mysql.connector.connect(**DB_CONFIG)
+            cursor = db_connection.cursor(dictionary=True)
+
+            print("Berhasil terhubung ke database MySQL.")
+
+            # --- 4. Ambil Kata Kunci (nama_saham) dari tabel saham_profile ---
+            cursor.execute("SELECT saham_id, nama_saham FROM saham_profile")
+            stock_keywords = cursor.fetchall()
+
+            if not stock_keywords:
+                print("Tidak ada kata kunci saham ditemukan di tabel 'saham_profile'.")
+                # Jika tidak ada saham, tetap perlu menutup koneksi dan lock
+                return
+
+            print(f"Ditemukan {len(stock_keywords)} kata kunci saham.")
+
+            # --- 5. Dapatkan semua URL berita yang sudah ada di database ---
+            cursor.execute("SELECT url FROM berita")
+            existing_urls = {row['url'] for row in cursor.fetchall()}
+            print(f"Ditemukan {len(existing_urls)} URL berita yang sudah ada di database.")
+
+            total_new_articles_processed = 0
+
+            # --- 6. Iterasi Setiap Kata Kunci untuk Scraping dan Analisis ---
+            for stock in stock_keywords:
+                saham_id = stock['saham_id']
+                nama_saham = stock['nama_saham']
+                
+                search_query = f"{nama_saham}" 
+                print(f"\n--- Memproses kata kunci: '{search_query}' (Saham ID: {saham_id}) ---")
+
+                raw_scraped_data = scrape_detik_search_filtered(search_query, max_articles=20)
+                
+                if not raw_scraped_data:
+                    print(f"Tidak ada berita baru yang di-scrape untuk '{search_query}'.")
                     continue
-            
-            db_connection.commit() # Commit setiap selesai satu batch saham
-            print(f"Berhasil menyimpan {articles_inserted_count} berita baru untuk Saham ID {saham_id} ke database.")
 
-        print(f"\nTotal {total_new_articles_processed} artikel baru diproses dan disimpan ke database.")
+                print(f"Ditemukan {len(raw_scraped_data)} artikel potensial untuk '{search_query}'.")
 
-    except mysql.connector.Error as err:
-        print(f"Kesalahan Database: {err}")
-    except Exception as e:
-        print(f"Terjadi kesalahan tak terduga: {e}")
-    finally:
-        if db_connection and db_connection.is_connected():
-            cursor.close()
-            db_connection.close()
-            print("Koneksi database ditutup.")
-            
-        # --- Simpan Waktu Terakhir Dijalankan (SETELAH SEMUA PROSES SELESAI) ---
-        with open(LAST_RUN_FILE, 'w') as f:
-            f.write(current_time.isoformat())
-        print(f"[{datetime.now()}] Waktu terakhir dijalankan disimpan: {current_time.isoformat()}")
-        print(f"[{datetime.now()}] Aplikasi Sentimen Analisis Berita selesai.")
+                new_articles_for_stock = []
+                for article in raw_scraped_data:
+                    if article['url'] not in existing_urls:
+                        new_articles_for_stock.append(article)
+                        existing_urls.add(article['url'])
+
+                if not new_articles_for_stock:
+                    print(f"Tidak ada artikel baru yang unik setelah pengecekan duplikat untuk '{search_query}'.")
+                    continue
+
+                print(f"Ditemukan {len(new_articles_for_stock)} artikel BARU dan UNIK untuk '{search_query}'.")
+
+                new_articles_df = pd.DataFrame(new_articles_for_stock)
+
+                # --- 7. Pra-pemrosesan dan Sentimen Analisis dengan ML Model ---
+                print("Melakukan pra-pemrosesan dan analisis sentimen dengan model ML...")
+                
+                new_articles_df['text_gabungan'] = new_articles_df['judul'].apply(preprocess_text) + ' ' + \
+                                                   new_articles_df['isi_berita'].apply(preprocess_text)
+
+                new_articles_df = new_articles_df[new_articles_df['text_gabungan'].str.strip() != '']
+                
+                if new_articles_df.empty:
+                    print(f"Tidak ada konten yang valid setelah pra-pemrosesan untuk '{search_query}'.")
+                    continue
+
+                X_new = vectorizer.transform(new_articles_df['text_gabungan'])
+                predictions_encoded = sentiment_model.predict(X_new)
+                new_articles_df['sentimen'] = label_encoder.inverse_transform(predictions_encoded)
+
+                print(f"Analisis sentimen selesai untuk {len(new_articles_df)} artikel.")
+
+                # --- 8. Simpan Berita Baru ke Database MySQL ---
+                insert_query = """
+                INSERT INTO berita (saham_id, url, judul_berita, isi_berita, sentimen)
+                VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE 
+                    judul_berita = VALUES(judul_berita), 
+                    isi_berita = VALUES(isi_berita), 
+                    sentimen = VALUES(sentimen);
+                """
+                
+                articles_inserted_count = 0
+                for index, row in new_articles_df.iterrows():
+                    try:
+                        cursor.execute(insert_query, (
+                            saham_id,
+                            row['url'],
+                            row['judul'],
+                            row['isi_berita'],
+                            row['sentimen']
+                        ))
+                        articles_inserted_count += 1
+                        total_new_articles_processed += 1
+                    except mysql.connector.Error as err:
+                        print(f"Error saat menyimpan berita ke DB: {err} untuk URL: {row['url']}")
+                        continue
+                
+                db_connection.commit()
+                print(f"Berhasil menyimpan {articles_inserted_count} berita baru untuk Saham ID {saham_id} ke database.")
+
+            print(f"\nTotal {total_new_articles_processed} artikel baru diproses dan disimpan ke database.")
+
+            # --- PANGGIL FUNGSI UNTUK MEMPERBARUI SENTIMEN KESELURUHAN SAHAM DI SINI ---
+            update_overall_stock_sentiment(db_connection)
+
+        except mysql.connector.Error as err:
+            print(f"Kesalahan Database: {err}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Terjadi kesalahan tak terduga: {e}")
+            sys.exit(1)
+        finally:
+            if db_connection and db_connection.is_connected():
+                cursor.close()
+                db_connection.close()
+                print("Koneksi database ditutup.")
+                
+            # --- Simpan Waktu Terakhir Dijalankan (SETELAH SEMUA PROSES SELESAI) ---
+            with open(LAST_RUN_FILE, 'w') as f:
+                f.write(current_time.isoformat())
+            print(f"[{datetime.now()}] Waktu terakhir dijalankan disimpan: {current_time.isoformat()}")
+            print(f"[{datetime.now()}] Aplikasi Sentimen Analisis Berita selesai.")
+
+    finally: # Blok finally ini akan selalu dieksekusi, memastikan lock file dilepas
+        # --- Pastikan lock file dilepas saat skrip selesai (penting!) ---
+        if lock_file_fd:
+            fcntl.flock(lock_file_fd, fcntl.LOCK_UN) # Lepaskan kunci
+            lock_file_fd.close()
+            # os.remove(LOCK_FILE) # Tidak menghapus file, biarkan tetap ada untuk debug/inspeksi manual
+            print(f"[{datetime.now()}] Released lock: {LOCK_FILE}")
+            # Anda bisa menghapus os.remove(LOCK_FILE) jika Anda ingin file lock tetap ada dan hanya dikunci/dilepas.
+            # Jika Anda ingin file lock otomatis hilang, uncomment baris di bawah:
+            os.remove(LOCK_FILE) 
+            print(f"[{datetime.now()}] Removed lock file: {LOCK_FILE}")
 
 
 if __name__ == "__main__":
     main()
-

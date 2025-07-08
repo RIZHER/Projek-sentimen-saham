@@ -19,12 +19,22 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationItem;
+use Filament\Pages\Dashboard;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
+            ->navigationItems([
+                NavigationItem::make('User Prfile')
+                    ->url(fn(): string => Dashboard::getUrl())
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->group('Settings')
+                    ->sort(3),
+            ])
+
             ->default()
             ->id('admin')
             ->path('admin')

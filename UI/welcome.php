@@ -288,11 +288,11 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex items-center">
                             <div class="p-3 rounded-full bg-green-100 text-green-600">
-                                <i class="fas fa-shopping-cart text-xl"></i>
+                                <i class="fas fa-bookmark text-xl"></i>
                             </div>
                             <div class="ml-4">
-                                <p class="text-gray-500 text-sm">Total Sales</p>
-                                <h3 class="text-2xl font-bold">$24,345</h3>
+                                <p class="text-gray-500 text-sm">Total News</p>
+                                <h3 class="text-2xl font-bold">24,345</h3>
                                 <span class="text-green-500 text-xs font-medium">+8.2% from last week</span>
                             </div>
                         </div>
@@ -301,18 +301,19 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex items-center">
                             <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                                <i class="fas fa-chart-line text-xl"></i>
+                                <i class="fas fa-pen-to-square text-xl"></i>
                             </div>
                             <div class="ml-4">
-                                <p class="text-gray-500 text-sm">Total Revenue</p>
-                                <h3 class="text-2xl font-bold">$78,690</h3>
+                                <p class="text-gray-500 text-sm">Total User Notes</p>
+                                <h3 class="text-2xl font-bold">18,690</h3>
                                 <span class="text-green-500 text-xs font-medium">+5.7% from last week</span>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Recent Orders -->
-                    <div class="bg-white rounded-lg shadow md:col-span-2 lg:col-span-3 p-6">
+                    <?php 
+                    /*<div class="bg-white rounded-lg shadow md:col-span-2 lg:col-span-3 p-6">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
                             <a href="#" class="text-sm text-indigo-600 hover:text-indigo-800">View All</a>
@@ -408,7 +409,9 @@ if (!isset($_SESSION['user_id'])) {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                      </div> 
+                    */
+                    ?>
                     
                     <!-- Recent Activities -->
                     <div class="bg-white rounded-lg shadow p-6">
@@ -456,21 +459,21 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                     </div>
                     
-                    <!-- Top Products -->
+                    <!-- Positive sentiment -->
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-lg font-semibold text-gray-800">Top Products</h2>
+                            <h2 class="text-lg font-semibold text-gray-800">Positive sentiment</h2>
                             <a href="#" class="text-sm text-indigo-600 hover:text-indigo-800">View All</a>
                         </div>
                         <div class="space-y-4">
                             <div class="flex items-center">
                                 <div class="bg-indigo-100 p-2 rounded-lg">
-                                    <i class="fas fa-tshirt text-indigo-600"></i>
+                                    <i class="fas fa-solid fa-arrow-up text-indigo-600"></i>
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="flex justify-between">
-                                        <p class="text-sm font-medium text-gray-800">Premium T-Shirt</p>
-                                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">42 Sales</span>
+                                        <p class="text-sm font-medium text-gray-800">BTPN</p>
+                                        <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">120 positive news</span>
                                     </div>
                                     <div class="h-2 bg-gray-200 rounded-full mt-1">
                                         <div class="h-2 bg-indigo-500 rounded-full" style="width: 90%"></div>
@@ -479,12 +482,12 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="flex items-center">
                                 <div class="bg-blue-100 p-2 rounded-lg">
-                                    <i class="fas fa-headphones text-blue-600"></i>
+                                    <i class="fas fa-solid fa-arrow-up text-blue-600"></i>
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="flex justify-between">
-                                        <p class="text-sm font-medium text-gray-800">Wireless Headphones</p>
-                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">38 Sales</span>
+                                        <p class="text-sm font-medium text-gray-800">IKAI</p>
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">38 positive news</span>
                                     </div>
                                     <div class="h-2 bg-gray-200 rounded-full mt-1">
                                         <div class="h-2 bg-blue-500 rounded-full" style="width: 75%"></div>
@@ -493,12 +496,12 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="flex items-center">
                                 <div class="bg-green-100 p-2 rounded-lg">
-                                    <i class="fas fa-robot text-green-600"></i>
+                                    <i class="fas fa-solid fa-arrow-up text-green-600"></i>
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="flex justify-between">
-                                        <p class="text-sm font-medium text-gray-800">Smart Speaker</p>
-                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">32 Sales</span>
+                                        <p class="text-sm font-medium text-gray-800">VAST</p>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">32 positive news</span>
                                     </div>
                                     <div class="h-2 bg-gray-200 rounded-full mt-1">
                                         <div class="h-2 bg-green-500 rounded-full" style="width: 60%"></div>
@@ -507,12 +510,12 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="flex items-center">
                                 <div class="bg-purple-100 p-2 rounded-lg">
-                                    <i class="fas fa-watch text-purple-600"></i>
+                                    <i class="fas fa-solid fa-arrow-up text-purple-600"></i>
                                 </div>
                                 <div class="ml-4 flex-1">
                                     <div class="flex justify-between">
-                                        <p class="text-sm font-medium text-gray-800">Smart Watch</p>
-                                        <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">28 Sales</span>
+                                        <p class="text-sm font-medium text-gray-800">BBSS</p>
+                                        <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">28 positive news</span>
                                     </div>
                                     <div class="h-2 bg-gray-200 rounded-full mt-1">
                                         <div class="h-2 bg-purple-500 rounded-full" style="width: 50%"></div>

@@ -35,6 +35,12 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3),
             ])
 
+            ->brandLogo(asset('images/logo-cakra-io.svg'))
+            ->darkModeBrandLogo(asset('images/logo-cakra-io-dark.svg'))
+            ->brandName('Cakra Finance')
+            ->brandLogoHeight('8rem')
+            
+
             ->default()
             ->id('admin')
             ->path('admin')

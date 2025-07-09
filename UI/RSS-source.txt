@@ -1,0 +1,15 @@
+https://www.cnbcindonesia.com/market/rss
+https://www.antaranews.com/rss/ekonomi.xml
+https://www.investing.com/
+https://www.investing.com/webmaster-tools/rss
+https://www.investing.com/rss/market_overview_Technical.rss
+
+Link Berita:
+https://finance.detik.com/finansial/indeks?date=07%2F09%2F2025
+
+Analisis:
+https://www.kaggle.com/code/scratchpad/notebook849fb43aa0/edit
+https://www.zoonova.com/ChatGPT
+
+Tambahan menu:
+Stock Screener.

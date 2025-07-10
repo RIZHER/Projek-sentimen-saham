@@ -35,7 +35,10 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3),
             ])
 
-            ->brand(view('vendor.filament.components.brand'))            
+            //->brand(fn () => view('filament.components.brand'))            
+            //->brand(view('vendor.filament.components.brand'))
+            //->sidebarCollapsibleOnDesktop()
+            //->sidebarBrandView('components.layouts.sidebar.brand')           
 
             ->default()
             ->id('admin')

@@ -3,6 +3,36 @@ https://www.antaranews.com/rss/ekonomi.xml
 https://www.investing.com/
 https://www.investing.com/webmaster-tools/rss
 https://www.investing.com/rss/market_overview_Technical.rss
+http://www.republika.co.id/rss
+http://www.bbc.co.uk/indonesia/index.xml
+http://www.antara.co.id/rss/news.xml
+http://rss.detik.com/index.php/detikcom
+http://www.kompas.com/getrss/nasional
+http://rss.tempointeraktif.com/index.xml
+http://sindikasi.okezone.com/index.php/okezone/RSS2.0
+http://www.tvone.co.id/rss/news/1/Terkini
+http://www.liputan6.com/feed/rss
+http://feeds.bbc.co.uk/indonesian/index.xml
+Berita Aktual : http://www.metrotvnews.com/read/rss/aktual
+http://www.metrotvnews.com/rss/berita.asp
+Polhukam : http://www.metrotvnews.com/read/rss/polkam
+Ekonomi : http://www.metrotvnews.com/read/rss/ekonomi
+Nasional : http://www.metrotvnews.com/read/rss/nusantara
+Internasional : http://www.metrotvnews.com/read/rss/internasional
+Olahraga : http://www.metrotvnews.com/read/rss/olahraga
+SosBud : http://www.metrotvnews.com/read/rss/sosbud
+Index Feed : http://www.mediaindonesia.com/micom_rss/grab
+Politik : http://mediaindonesia.feedsportal.com/c/33655/f/590285/index.rss
+Ekonomi : http://www.mediaindonesia.com/rss/2/ekonomi
+Olah Raga : http://www.mediaindonesia.com/rss/3/olahraga
+Sepak Bola : http://www.mediaindonesia.com/rss/4/sepakbola
+Megapolitan : http://www.mediaindonesia.com/rss/5/megapolitan
+Tanah Air : http://www.mediaindonesia.com/rss/101/tanahair
+Mancanegara : http://www.mediaindonesia.com/rss/6/mancanegara
+IPTEK : http://www.mediaindonesia.com/rss/7/iptek
+Humaniora : http://www.mediaindonesia.com/rss/14/humaniora
+Hiburan : http://www.mediaindonesia.com/rss/10/hiburan
+Opini : http://www.mediaindonesia.com/rss/11/opini
 
 Link Berita:
 https://finance.detik.com/finansial/indeks?date=07%2F09%2F2025

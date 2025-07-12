@@ -1,0 +1,57 @@
+/* resources/css/filament-custom.css */
+
+/* --- Gaya untuk Halaman Login/Register --- */
+/* Menggunakan selektor yang sangat spesifik untuk menargetkan kontainer logo di halaman autentikasi */
+/* Kelas .fi-auth-page ada di <body> atau root container halaman login Filamen */
+.fi-auth-page .filament-brand#auth-logo-container {
+    display: flex !important;
+    flex-direction: column !important; /* Paksa jadi kolom */
+    align-items: center !important;     /* Pusatkan horizontal */
+    justify-content: center !important;  /* Pusatkan vertikal */
+    width: 100% !important; /* Pastikan mengambil lebar penuh */
+}
+
+.fi-auth-page .filament-brand#auth-logo-container img {
+    height: 6rem !important; /* Ukuran besar logo */
+    width: auto !important; /* Pertahankan rasio aspek */
+    margin-bottom: 1rem !important; /* Jarak antara logo dan teks */
+    display: block !important; /* Pastikan gambar sebagai blok */
+    margin-left: auto !important; /* Pemusatan horizontal */
+    margin-right: auto !important; /* Pemusatan horizontal */
+}
+
+.fi-auth-page .filament-brand#auth-logo-container span {
+    font-size: 1.5rem !important; /* Ukuran teks besar */
+    font-weight: bold !important;
+    text-align: center !important;
+    display: block !important; /* Pastikan teks sebagai blok */
+    color: var(--gray-950) !important; /* Sesuaikan warna */
+    /* Anda bisa menggunakan var(--color-gray-950) atau hex code langsung */
+}
+
+/* --- Gaya untuk Navbar --- */
+/* Menargetkan kontainer logo di navbar */
+/* Kelas .fi-header ada di header Filamen */
+.fi-header .filament-brand#navbar-logo-container {
+    display: flex !important;
+    flex-direction: row !important; /* Paksa jadi baris */
+    align-items: center !important;     /* Pusatkan vertikal */
+    justify-content: flex-start !important; /* Ratakan kiri */
+    width: auto !important; /* Biarkan lebarnya sesuai konten */
+}
+
+.fi-header .filament-brand#navbar-logo-container img {
+    height: 2rem !important; /* Ukuran kecil logo */
+    width: auto !important;
+    margin-right: 1rem !important; /* Jarak antara logo dan teks di navbar (sesuaikan!) */
+    margin-bottom: 0 !important; /* Pastikan tidak ada margin bawah */
+}
+
+.fi-header .filament-brand#navbar-logo-container span {
+    font-size: 1rem !important; /* Ukuran teks kecil */
+    font-weight: 600 !important;
+    text-align: left !important;
+    white-space: nowrap !important; /* Mencegah pecah baris */
+    display: inline-block !important; /* Bisa inline-block atau block tergantung kebutuhan */
+    color: var(--gray-950) !important; /* Sesuaikan warna */
+}

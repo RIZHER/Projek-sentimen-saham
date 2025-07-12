@@ -12,6 +12,7 @@ use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use App\Filament\Widgets\LatestSahamProfilesWidget; // Import widget tabel Anda
 use App\Filament\Widgets\SpacerWidget; // Import widget spacer yang baru
+use Filament\Enums\ThemeMode;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -35,16 +36,20 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3),
             ])
 
-            //->brand(fn () => view('filament.components.brand'))            
-            //->brand(view('vendor.filament.components.brand'))
-            //->sidebarCollapsibleOnDesktop()
-            //->sidebarBrandView('components.layouts.sidebar.brand')           
-
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
             ->registration() // <--- PASTIKAN BARIS INI ADA DAN TIDAK DIKOMENTARI
+
+            //mengatur tema
+            ->font('Poppins')
+            ->defaultThemeMode(ThemeMode::Light)
+            ->brandName('Cakra Finance')
+            ->brandLogo(asset('images/logo-cakra-io-dark.svg'))
+            // ->brandLogoHeight('2rem')
+            // Ini adalah bagian pentingnya: panggil view kustom Anda
+            // ->brandLogo(fn() => view('filament.admin.logo')) // Perhatikan namespace view 'filament.admin.logo'
             ->colors([
                 'primary' => Color::Amber,
             ])
